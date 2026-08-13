@@ -1,0 +1,8 @@
+{
+  "name": "數學小精靈 (Math Magic)",
+  "description": "A fun math app for 5-year-olds to learn horizontal to vertical equation conversion and basic addition/subtraction, featuring cute animations and rewards.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
