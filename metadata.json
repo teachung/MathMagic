@@ -1,6 +1,6 @@
 {
-  "name": "數學小精靈 (Math Magic)",
-  "description": "A fun math app for 5-year-olds to learn horizontal to vertical equation conversion and basic addition/subtraction, featuring cute animations and rewards.",
+  "name": "冰雪魔法數學 (Frozen Math Magic)",
+  "description": "冰雪奇緣主題兒童數學學習遊戲，包含愛莎公主互動陪伴、冰晶積木進位動畫、冰雪城堡逐級解鎖故事系統，適合5歲小朋友自主學習橫式轉直式加減法。",
   "requestFramePermissions": [],
   "majorCapabilities": [
     "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
