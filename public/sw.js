@@ -1,8 +1,13 @@
-const CACHE_NAME = 'frozen-math-pwa-v1';
+const CACHE_NAME = 'frozen-math-pwa-v2';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
+  '/icon-maskable-512x512.png',
+  '/apple-touch-icon.png',
   '/icon.svg',
   '/favicon.svg'
 ];
