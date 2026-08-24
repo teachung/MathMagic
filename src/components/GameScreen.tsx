@@ -287,10 +287,12 @@ export function GameScreen({
                 <NumberGroup
                   num={question.num1}
                   source="num1"
+                  phase={phase}
                   activeDigit={activeDigit}
                   placedDigits={placedDigits}
                   errorDigit={errorDigit}
                   onDigitClick={onDigitClick}
+                  onGridCellClick={onGridCellClick}
                 />
 
                 {/* Operator */}
@@ -307,10 +309,12 @@ export function GameScreen({
                 <NumberGroup
                   num={question.num2}
                   source="num2"
+                  phase={phase}
                   activeDigit={activeDigit}
                   placedDigits={placedDigits}
                   errorDigit={errorDigit}
                   onDigitClick={onDigitClick}
+                  onGridCellClick={onGridCellClick}
                 />
 
                 {/* Equals sign */}
@@ -352,9 +356,9 @@ export function GameScreen({
             <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-b from-white/35 to-transparent pointer-events-none rounded-t-3xl" />
             <div className="absolute -top-12 -left-12 w-48 h-96 bg-white/15 transform rotate-35 pointer-events-none" />
 
-            {/* Middle Container: Blocks on Left + Math Column on Right */}
-            <div className="relative z-10 flex flex-col sm:flex-row items-center sm:items-end justify-around gap-2 sm:gap-4 my-auto pt-4 sm:pt-6 pb-2 w-full">
-              {/* LEFT SIDE: Visual Base-10 Blocks Area */}
+            {/* Middle Container: Vertical Math Columns & Blocks Tablet (Mobile-optimized: Math Grid is on TOP on mobile to keep distance minimal) */}
+            <div className="relative z-10 flex flex-col-reverse sm:flex-row items-center sm:items-end justify-around gap-3 sm:gap-4 my-auto pt-3 sm:pt-6 pb-2 w-full">
+              {/* LEFT/BOTTOM SIDE: Visual Base-10 Blocks Area */}
               <div className="flex flex-col items-center justify-center shrink-0 w-full sm:w-auto">
                 <CarryingEquationBlocks
                   num1={question.num1}
@@ -367,23 +371,8 @@ export function GameScreen({
                 />
               </div>
 
-              {/* RIGHT SIDE: Vertical Math Columns Grid */}
-              <div className="relative flex flex-col items-end shrink-0 pl-4 sm:pl-6">
-                {/* Fairy Mascot carrying active digit */}
-                {activeDigit && (
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="absolute -top-10 -left-12 sm:-left-16 z-30 pointer-events-none"
-                  >
-                    <IceFairy
-                      pose="carrying"
-                      carryingValue={activeDigit.value}
-                      size={48}
-                    />
-                  </motion.div>
-                )}
-
+              {/* RIGHT/TOP SIDE: Vertical Math Columns Grid */}
+              <div className="relative flex flex-col items-center sm:items-end shrink-0 w-full sm:w-auto pl-0 sm:pl-6">
                 {/* Column Headers ("十位", "個位") in Frost Capsules */}
                 <div className="flex justify-end gap-2 sm:gap-3 mb-1 sm:mb-2">
                   <div className="w-14 sm:w-16 md:w-20 text-center relative">
@@ -417,6 +406,7 @@ export function GameScreen({
                 {/* Top Row Grid Cells */}
                 <div className="flex justify-end items-center gap-2 sm:gap-3 h-14 sm:h-18 md:h-22">
                   <GridDigitCell
+                    id="grid-cell-topTens"
                     value={grid.topTens}
                     isError={errorCell === 'topTens'}
                     isInteractive={phase === 'arrange'}
@@ -424,6 +414,7 @@ export function GameScreen({
                     onClick={() => onGridCellClick('topTens')}
                   />
                   <GridDigitCell
+                    id="grid-cell-topUnits"
                     value={grid.topUnits}
                     isError={errorCell === 'topUnits'}
                     isInteractive={phase === 'arrange'}
@@ -445,6 +436,7 @@ export function GameScreen({
                   </span>
 
                   <GridDigitCell
+                    id="grid-cell-bottomTens"
                     value={grid.bottomTens}
                     isError={errorCell === 'bottomTens'}
                     isInteractive={phase === 'arrange'}
@@ -452,6 +444,7 @@ export function GameScreen({
                     onClick={() => onGridCellClick('bottomTens')}
                   />
                   <GridDigitCell
+                    id="grid-cell-bottomUnits"
                     value={grid.bottomUnits}
                     isError={errorCell === 'bottomUnits'}
                     isInteractive={phase === 'arrange'}
@@ -472,6 +465,7 @@ export function GameScreen({
                     <>
                       {Math.floor(question.answer / 10) > 0 ? (
                         <GridDigitCell
+                          id="grid-cell-answerTens"
                           value={grid.answerTens}
                           isError={errorCell === 'answerTens'}
                           isInteractive={false}
@@ -489,6 +483,7 @@ export function GameScreen({
                         <div className="w-14 sm:w-16 md:w-20 h-14 sm:h-18 md:h-22" />
                       )}
                       <GridDigitCell
+                        id="grid-cell-answerUnits"
                         value={grid.answerUnits}
                         isError={errorCell === 'answerUnits'}
                         isInteractive={false}
@@ -559,13 +554,16 @@ export function GameScreen({
 function NumberGroup({
   num,
   source,
+  phase,
   activeDigit,
   placedDigits,
   errorDigit,
   onDigitClick,
+  onGridCellClick,
 }: {
   num: number;
   source: 'num1' | 'num2';
+  phase: GamePhase;
   activeDigit: {
     source: 'num1' | 'num2';
     place: 'tens' | 'units';
@@ -578,6 +576,9 @@ function NumberGroup({
     p: 'tens' | 'units',
     v: string
   ) => void;
+  onGridCellClick: (
+    cell: 'topTens' | 'topUnits' | 'bottomTens' | 'bottomUnits'
+  ) => void;
 }) {
   const tens = Math.floor(num / 10);
   const units = num % 10;
@@ -588,6 +589,9 @@ function NumberGroup({
       {hasTens && (
         <DigitBubble
           value={tens.toString()}
+          source={source}
+          place="tens"
+          phase={phase}
           isActive={
             activeDigit?.source === source && activeDigit?.place === 'tens'
           }
@@ -596,10 +600,14 @@ function NumberGroup({
             errorDigit?.source === source && errorDigit?.place === 'tens'
           }
           onClick={() => onDigitClick(source, 'tens', tens.toString())}
+          onGridCellClick={onGridCellClick}
         />
       )}
       <DigitBubble
         value={units.toString()}
+        source={source}
+        place="units"
+        phase={phase}
         isActive={
           activeDigit?.source === source && activeDigit?.place === 'units'
         }
@@ -608,6 +616,7 @@ function NumberGroup({
           errorDigit?.source === source && errorDigit?.place === 'units'
         }
         onClick={() => onDigitClick(source, 'units', units.toString())}
+        onGridCellClick={onGridCellClick}
       />
     </div>
   );
@@ -615,16 +624,26 @@ function NumberGroup({
 
 function DigitBubble({
   value,
+  source,
+  place,
+  phase,
   isActive,
   isPlaced,
   isError,
   onClick,
+  onGridCellClick,
 }: {
   value: string;
+  source: 'num1' | 'num2';
+  place: 'tens' | 'units';
+  phase: GamePhase;
   isActive: boolean;
   isPlaced: boolean;
   isError: boolean;
   onClick: () => void;
+  onGridCellClick: (
+    cell: 'topTens' | 'topUnits' | 'bottomTens' | 'bottomUnits'
+  ) => void;
 }) {
   if (isPlaced) {
     return (
@@ -634,24 +653,59 @@ function DigitBubble({
     );
   }
 
+  const handleDragEnd = (_: any, info: { point: { x: number; y: number } }) => {
+    const cells: ('topTens' | 'topUnits' | 'bottomTens' | 'bottomUnits')[] = [
+      'topTens',
+      'topUnits',
+      'bottomTens',
+      'bottomUnits',
+    ];
+    for (const cell of cells) {
+      const el = document.getElementById(`grid-cell-${cell}`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        const { x, y } = info.point;
+        // Generous touch target for children
+        if (
+          x >= rect.left - 35 &&
+          x <= rect.right + 35 &&
+          y >= rect.top - 35 &&
+          y <= rect.bottom + 35
+        ) {
+          onGridCellClick(cell);
+          return;
+        }
+      }
+    }
+  };
+
   return (
     <motion.button
+      drag={phase === 'arrange'}
+      dragSnapToOrigin
+      dragElastic={0.15}
+      whileDrag={{
+        scale: 1.2,
+        zIndex: 99,
+        filter: 'drop-shadow(0 12px 24px rgba(2,132,199,0.7))',
+      }}
+      onDragStart={onClick}
+      onDragEnd={handleDragEnd}
       animate={isError ? { x: [-5, 5, -5, 5, 0] } : {}}
       transition={{ duration: 0.3 }}
       whileHover={{ scale: 1.08 }}
       whileTap={{ scale: 0.92 }}
       onClick={onClick}
-      className={`w-12 h-16 sm:w-15 sm:h-20 md:w-18 md:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center text-4xl sm:text-5xl md:text-6xl font-black shrink-0 transition-all cursor-pointer border-3 select-none ${
+      className={`w-12 h-16 sm:w-15 sm:h-20 md:w-18 md:h-24 rounded-2xl md:rounded-3xl flex items-center justify-center text-4xl sm:text-5xl md:text-6xl font-black shrink-0 transition-all cursor-grab active:cursor-grabbing border-3 select-none touch-none ${
         isActive
-          ? 'bg-gradient-to-b from-yellow-100 via-amber-200 to-yellow-400 border-yellow-400 text-yellow-950 ring-4 ring-yellow-300/80 shadow-[0_0_20px_rgba(250,204,21,0.8)]'
+          ? 'bg-sky-100 border-sky-500 text-sky-950 scale-105 shadow-md'
           : isError
           ? 'bg-red-100 border-red-400 text-red-700 ring-4 ring-red-300'
           : 'bg-gradient-to-b from-white via-sky-100 to-sky-200 border-white text-sky-900 shadow-[0_8px_18px_rgba(2,132,199,0.3)] hover:brightness-110'
       }`}
       style={{
-        textShadow: isActive
-          ? '0 1px 2px rgba(255,255,255,0.8)'
-          : '0 2px 4px rgba(255,255,255,0.9), 0 0 10px rgba(56,189,248,0.5)',
+        textShadow:
+          '0 2px 4px rgba(255,255,255,0.9), 0 0 10px rgba(56,189,248,0.5)',
       }}
     >
       {value}
@@ -660,6 +714,7 @@ function DigitBubble({
 }
 
 function GridDigitCell({
+  id,
   value,
   isError,
   isInteractive,
@@ -667,6 +722,7 @@ function GridDigitCell({
   onClick,
   textColorClass = 'text-sky-900',
 }: {
+  id?: string;
   value: string | null;
   isError: boolean;
   isInteractive: boolean;
@@ -677,6 +733,7 @@ function GridDigitCell({
   if (value !== null) {
     return (
       <div
+        id={id}
         className={`w-14 sm:w-16 md:w-20 h-14 sm:h-18 md:h-22 rounded-2xl md:rounded-3xl flex items-center justify-center text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-b from-white via-sky-50 to-sky-200 border-3 border-white shadow-[0_8px_18px_rgba(2,132,199,0.3)] ${textColorClass} select-none`}
         style={{
           textShadow:
@@ -689,7 +746,7 @@ function GridDigitCell({
   }
 
   if (!showEmptyBox) {
-    return <div className="w-14 sm:w-16 md:w-20 h-14 sm:h-18 md:h-22" />;
+    return <div id={id} className="w-14 sm:w-16 md:w-20 h-14 sm:h-18 md:h-22" />;
   }
 
   let cellClass =
@@ -707,6 +764,7 @@ function GridDigitCell({
 
   return (
     <motion.button
+      id={id}
       animate={isError ? { x: [-6, 6, -6, 6, 0] } : {}}
       transition={{ duration: 0.3 }}
       onClick={onClick}
