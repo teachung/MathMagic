@@ -12,7 +12,8 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
   const [isAndroid, setIsAndroid] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
+  const [installStatusMsg, setInstallStatusMsg] = useState<string | null>(null);
 
   useEffect(() => {
     // Check if standalone
@@ -49,16 +50,29 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
     };
   }, []);
 
+  // Unified install action with graceful fallback
   const handleInstallClick = async () => {
     const promptEvent = deferredPrompt || (window as any).__pwaInstallPrompt;
+    
     if (promptEvent) {
-      promptEvent.prompt();
-      const { outcome } = await promptEvent.userChoice;
-      if (outcome === 'accepted') {
-        setIsInstalled(true);
+      try {
+        promptEvent.prompt();
+        const { outcome } = await promptEvent.userChoice;
+        if (outcome === 'accepted') {
+          setIsInstalled(true);
+          setInstallStatusMsg('感謝安裝！您已成功將《冰雪魔法數學》加到主畫面。');
+        }
+        setDeferredPrompt(null);
+        (window as any).__pwaInstallPrompt = null;
+      } catch {
+        // Handled below if prompt fails
       }
-      setDeferredPrompt(null);
-      (window as any).__pwaInstallPrompt = null;
+    } else if (isIOS) {
+      setInstallStatusMsg('iOS 安裝方法：請點擊 Safari 底部的「分享」按鈕，然後選擇「加入主畫面」即可完成！');
+    } else if (isAndroid) {
+      setInstallStatusMsg('請點擊 Chrome 右上角的「⋮」選單，然後點選「加到主螢幕」或「安裝應用程式」即可！');
+    } else {
+      setInstallStatusMsg('請點擊瀏覽器網址列右側的「⊕ 安裝」圖示，或從瀏覽器右上角選單選擇「安裝 冰雪魔法數學」。');
     }
   };
 
@@ -85,7 +99,7 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
           <div className="flex items-center gap-3.5 mb-3">
             <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden shadow-lg border-2 border-white bg-sky-500 flex-shrink-0">
               <img
-                src="/icon.svg"
+                src="/icon-192x192.png"
                 alt="冰雪魔法數學 Icon"
                 className="w-full h-full object-cover"
               />
@@ -120,6 +134,17 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
             )}
           </div>
 
+          {/* Fallback Toast Message if triggered */}
+          {installStatusMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-indigo-600 text-white text-xs font-bold p-3 rounded-2xl mb-3 shadow-md border border-indigo-300 text-center"
+            >
+              {installStatusMsg}
+            </motion.div>
+          )}
+
           {/* Installation Instructions / Direct Button */}
           {isInstalled ? (
             <div className="bg-white/90 rounded-2xl p-4 text-center border border-sky-200 mb-3 shadow-xs">
@@ -129,43 +154,47 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
             </div>
           ) : (
             <div className="space-y-3 mb-3">
-              {/* If browser triggered install prompt */}
-              {deferredPrompt && (
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={handleInstallClick}
-                  className="w-full py-3 bg-gradient-to-r from-sky-500 via-blue-600 to-cyan-500 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg border-2 border-white flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Download className="w-5 h-5" />
-                  <span>立即點此安裝至主畫面</span>
-                </motion.button>
-              )}
+              {/* Unified Single Action Install Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleInstallClick}
+                className="w-full py-3 bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 hover:brightness-110 text-white font-black text-sm sm:text-base rounded-2xl shadow-lg border-2 border-white flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Download className="w-5 h-5 text-yellow-300" />
+                <span>
+                  {isIOS
+                    ? '🍎 iOS / iPad 安裝指引'
+                    : isAndroid
+                    ? '🤖 Android 一鍵安裝 / 加入主畫面'
+                    : '💻 電腦 / 瀏覽器安裝 App'}
+                </span>
+              </motion.button>
 
               {/* Android Chrome Explicit Guide */}
               {isAndroid && (
                 <div className="bg-white/90 rounded-2xl p-3.5 border-2 border-amber-300 shadow-xs space-y-2 text-left">
                   <div className="flex items-center gap-1.5 text-xs font-black text-amber-950">
                     <Smartphone className="w-4 h-4 text-amber-600" />
-                    <span>Android (Chrome) 安裝步驟：</span>
+                    <span>Android (Chrome) 3 步驟安裝：</span>
                   </div>
                   <ol className="text-xs font-bold text-slate-800 space-y-2 list-decimal list-inside">
                     <li className="flex items-start gap-1">
                       <span className="font-black text-amber-700">1.</span>
                       <span>
-                        點擊 Chrome 瀏覽器右上角的 <strong>三個點點選單「<MoreVertical className="w-3.5 h-3.5 inline text-slate-700" />」</strong>
+                        點擊 Chrome 瀏覽器右上角 <strong>「<MoreVertical className="w-3.5 h-3.5 inline text-slate-700" />」</strong> 選單
                       </span>
                     </li>
                     <li className="flex items-start gap-1">
                       <span className="font-black text-amber-700">2.</span>
                       <span>
-                        在選單中點選 <strong>「安裝應用程式」</strong> 或 <strong>「加到主螢幕」</strong>
+                        點選 <strong>「加到主螢幕」</strong> 或 <strong>「安裝應用程式」</strong>
                       </span>
                     </li>
                     <li className="flex items-start gap-1">
                       <span className="font-black text-amber-700">3.</span>
                       <span>
-                        點擊 <strong>「安裝」</strong>，桌面上就會出現《冰雪魔法數學》專屬圖示！
+                        點擊 <strong>「安裝」</strong>，桌面就會出現《冰雪魔法數學》專屬圖示！
                       </span>
                     </li>
                   </ol>
@@ -177,7 +206,7 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
                 <div className="bg-white/90 rounded-2xl p-3.5 border border-sky-200 space-y-2 text-left shadow-xs">
                   <div className="flex items-center gap-1.5 text-xs font-black text-sky-950">
                     <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>iPhone / iPad (Safari) 安裝步驟：</span>
+                    <span>iPhone / iPad (Safari) 步驟：</span>
                   </div>
                   <ol className="text-xs font-bold text-sky-900 space-y-1.5 list-decimal list-inside">
                     <li className="flex items-center gap-1.5">
@@ -205,7 +234,7 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
                     <span>電腦瀏覽器安裝方式：</span>
                   </div>
                   <p>
-                    請點擊網址列最右邊的 <strong>「安裝 App ⊕」</strong> 圖示，或點瀏覽器右上角選單 <strong>「⋮」 → 「儲存並分享」 → 「安裝 冰雪魔法數學」</strong> 即可！
+                    請點擊網址列最右邊的 <strong>「安裝 App ⊕」</strong> 圖示，或點選單 <strong>「⋮」 → 「儲存並分享」 → 「安裝 冰雪魔法數學」</strong> 即可！
                   </p>
                 </div>
               )}
@@ -232,7 +261,7 @@ export function PwaInstallModal({ isOpen, onClose }: PwaInstallModalProps) {
             onClick={onClose}
             className="w-full py-2 bg-white hover:bg-sky-50 text-sky-900 text-xs font-black rounded-xl border border-sky-200 transition-colors shadow-xs cursor-pointer"
           >
-            我知道了，關閉視窗
+            關閉視窗
           </button>
         </motion.div>
       </div>
