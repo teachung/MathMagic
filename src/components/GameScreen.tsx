@@ -114,9 +114,13 @@ export function GameScreen({
   if (phase === 'arrange') {
     elsaDialogue = '把橫式數字排到直式格子裡吧！';
   } else if (phase === 'calc_units') {
-    elsaDialogue = hasCarry ? '個位滿十進一囉！算算個位剩幾粒？' : '太好了！先算算看個位數！';
+    elsaDialogue = hasCarry
+      ? '個位滿十進一囉！算算個位剩幾粒？'
+      : '太好了！先算算看個位數是多少！';
   } else if (phase === 'calc_tens') {
-    elsaDialogue = hasCarry ? '加上進位的魔法棒，十位共是多少？' : '現在來計算十位數！';
+    elsaDialogue = hasCarry
+      ? '加上進位的魔法棒，十位共是多少？'
+      : '現在來計算十位數是多少！';
   } else if (phase === 'success') {
     elsaDialogue = '太神奇了！城堡的冰晶又更璀璨了！✨';
   }

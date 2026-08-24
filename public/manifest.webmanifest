@@ -1,0 +1,33 @@
+{
+  "name": "冰雪魔法數學 - 兒童直式加減法",
+  "short_name": "冰雪數學",
+  "description": "冰雪奇緣主題兒童數學學習 App，愛莎公主互動陪伴、冰晶積木進位思考與城堡解鎖，支援離線遊玩。",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "window-controls-overlay"],
+  "background_color": "#e0f2fe",
+  "theme_color": "#38bdf8",
+  "orientation": "any",
+  "categories": ["education", "games", "kids"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -7,6 +7,7 @@ import { GameScreen } from './components/GameScreen';
 import { IceKingdomStory } from './components/IceKingdomStory';
 import { StoryMilestoneModal } from './components/StoryMilestoneModal';
 import { CastlePhotoAlbumModal } from './components/CastlePhotoAlbumModal';
+import { PwaInstallModal } from './components/PwaInstallModal';
 import { CASTLE_MILESTONES } from './storyData';
 
 // Web Audio API Synthesizer for child-friendly crystal sound effects
@@ -100,7 +101,20 @@ export default function App() {
   const [phase, setPhase] = useState<GamePhase>('arrange');
   const [showCastleStory, setShowCastleStory] = useState(false);
   const [showCastleAlbum, setShowCastleAlbum] = useState(false);
+  const [showPwaModal, setShowPwaModal] = useState(false);
+  const [isOnline, setIsOnline] = useState(typeof navigator !== 'undefined' ? navigator.onLine : true);
   const [activeMilestone, setActiveMilestone] = useState<CastleMilestone | null>(null);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   const [stars, setStars] = useState<number>(() => {
     try {
@@ -417,6 +431,8 @@ export default function App() {
             setRequireCalc={setRequireCalc}
             onOpenCastle={() => setShowCastleStory(true)}
             onOpenAlbum={() => setShowCastleAlbum(true)}
+            onOpenPwaModal={() => setShowPwaModal(true)}
+            isOnline={isOnline}
           />
         ) : (
           <GameScreen
@@ -453,6 +469,12 @@ export default function App() {
           />
         )}
       </div>
+
+      {/* PWA Desktop App & Offline Installation Modal */}
+      <PwaInstallModal
+        isOpen={showPwaModal}
+        onClose={() => setShowPwaModal(false)}
+      />
 
       {/* Interactive Ice Kingdom Castle Story Modal */}
       <IceKingdomStory
